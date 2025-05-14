@@ -55,6 +55,8 @@ import com.mycompany.clinica.validadores.ValidadorDeCitas;
 
  * se puede añadir validadores desde cualquier parte del código:
  */
+
+ /* Este es un testeo*/
 public class Clinica {
 
     public static void main(String[] args) {
