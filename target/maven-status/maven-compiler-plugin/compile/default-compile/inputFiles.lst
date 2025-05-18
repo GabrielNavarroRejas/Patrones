@@ -1,0 +1,15 @@
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\Clinica.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\models\Cita.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\models\Medico.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\models\Paciente.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\services\AgendaService.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\services\BuscadorCitas.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\services\BuscadorDeCitas.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\storage\Repositorio.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\storage\RepositorioArchivo.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\ui\Menu.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\ui\MenuAdmin.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\ui\MenuPaciente.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\validadores\DisponibilidadPorHorarioMedicoDecorator.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\validadores\ValidadorBase.java
+C:\Users\gabri\OneDrive\Desktop\Patrones\src\main\java\com\mycompany\clinica\validadores\ValidadorDeCitas.java

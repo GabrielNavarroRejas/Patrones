@@ -81,7 +81,7 @@ public class Clinica {
             System.out.println(c);
         }*/
 
-        AgendaService servicio = new AgendaService(new RepositorioArchivo("citas.txt"));
+        AgendaService servicio = new AgendaService(new RepositorioArchivo());
         
         // Construir cadena de validadores
         ValidadorDeCitas validador = new ValidadorBase();

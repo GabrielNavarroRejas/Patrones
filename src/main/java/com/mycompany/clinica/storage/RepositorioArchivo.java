@@ -4,68 +4,108 @@ import com.mycompany.clinica.models.Cita;
 import com.mycompany.clinica.models.Medico;
 import com.mycompany.clinica.models.Paciente;
 
-import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.sql.*;
 
 public class RepositorioArchivo implements Repositorio {
-    private final String archivo;
 
-    public RepositorioArchivo(String archivo) {
-        this.archivo = archivo;
-    }
+    private static final String URL = "jdbc:postgresql://localhost:5432/Clinica";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "admin";
 
     @Override
-    public void guardar(List<Cita> citas) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivo))) {
-            for (Cita c : citas) {
-                String linea = c.getMedico().getId() + "," +
-                               c.getMedico().getNombre() + "," +
-                               c.getMedico().getEspecialidad() + "," +
-                               c.getPaciente().getId() + "," +
-                               c.getPaciente().getNombre() + "," +
-                               c.getPaciente().getEdad() + "," +
-                               c.getFechaHora();
-                writer.write(linea);
-                writer.newLine();
+    public void guardar(Cita cita) {
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            // Insertar médico (si no existe)
+            String sqlMedico = "INSERT INTO medicos (id, nombre, especialidad) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING";
+            try (PreparedStatement ps = conn.prepareStatement(sqlMedico)) {
+                ps.setInt(1, cita.getMedico().getId());
+                ps.setString(2, cita.getMedico().getNombre());
+                ps.setString(3, cita.getMedico().getEspecialidad());
+                ps.executeUpdate();
             }
-        } catch (IOException e) {
-            System.out.println("Error al guardar archivo: " + e.getMessage());
+
+            // Insertar paciente (si no existe)
+            String sqlPaciente = "INSERT INTO pacientes (id, nombre, edad) VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING";
+            try (PreparedStatement ps = conn.prepareStatement(sqlPaciente)) {
+                ps.setInt(1, cita.getPaciente().getId());
+                ps.setString(2, cita.getPaciente().getNombre());
+                ps.setInt(3, cita.getPaciente().getEdad());
+                ps.executeUpdate();
+            }
+
+            // Insertar cita
+            String sqlCita = "INSERT INTO citas (id_medico, id_paciente, fecha_hora) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlCita)) {
+                ps.setInt(1, cita.getMedico().getId());
+                ps.setInt(2, cita.getPaciente().getId());
+                ps.setTimestamp(3, Timestamp.valueOf(cita.getFechaHora()));
+                ps.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al guardar en la base de datos: " + e.getMessage());
         }
     }
 
     @Override
     public List<Cita> cargar() {
         List<Cita> citas = new ArrayList<>();
-        File file = new File(archivo);
-        if (!file.exists()) return citas;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
-            String linea;
-            while ((linea = reader.readLine()) != null) {
-                String[] partes = linea.split(",", 7); // 7 campos exactos
-                if (partes.length == 7) {
-                    Medico medico = new Medico(
-                            Integer.parseInt(partes[0]),
-                            partes[1],
-                            partes[2]);
+        String sql = "SELECT c.fecha_hora, " +
+                     "m.id AS id_medico, m.nombre AS nombre_medico, m.especialidad, " +
+                     "p.id AS id_paciente, p.nombre AS nombre_paciente, p.edad " +
+                     "FROM citas c " +
+                     "JOIN medicos m ON c.id_medico = m.id " +
+                     "JOIN pacientes p ON c.id_paciente = p.id";
 
-                    Paciente paciente = new Paciente(
-                            Integer.parseInt(partes[3]),
-                            partes[4],
-                            Integer.parseInt(partes[5]));
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-                    LocalDateTime fecha = LocalDateTime.parse(partes[6]);
+            while (rs.next()) {
+                Medico medico = new Medico(
+                        rs.getInt("id_medico"),
+                        rs.getString("nombre_medico"),
+                        rs.getString("especialidad"));
 
-                    citas.add(new Cita(medico, paciente, fecha));
-                }
+                Paciente paciente = new Paciente(
+                        rs.getInt("id_paciente"),
+                        rs.getString("nombre_paciente"),
+                        rs.getInt("edad"));
+
+                LocalDateTime fecha = rs.getTimestamp("fecha_hora").toLocalDateTime();
+
+                citas.add(new Cita(medico, paciente, fecha));
             }
-        } catch (IOException e) {
-            System.out.println("Error al leer archivo: " + e.getMessage());
+
+        } catch (SQLException e) {
+            System.out.println("Error al cargar desde la base de datos: " + e.getMessage());
         }
 
         return citas;
+    }
+
+    @Override
+    public boolean eliminar(int idPaciente, LocalDateTime fechaHora) {
+        String sql = "DELETE FROM citas WHERE id_paciente = ? AND fecha_hora = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idPaciente);
+            stmt.setTimestamp(2, Timestamp.valueOf(fechaHora));
+
+            int filas = stmt.executeUpdate();
+            return filas > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar cita en PostgreSQL: " + e.getMessage());
+            return false;
+        }
     }
 }
